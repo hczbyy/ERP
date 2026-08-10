@@ -1,0 +1,21 @@
+# 核心
+flask==3.0.0
+flask-cors==4.0.0
+flask-sqlalchemy==3.1.1
+pymysql==1.1.0
+
+# 可选依赖（按需安装）
+# JWT 已内置于 Flask (itsdangerous)，无需额外安装
+
+# 缓存
+cachetools==5.3.2
+
+# Windows 生产服务器
+waitress==2.1.2
+
+# Linux/Mac 生产服务器
+gunicorn==21.2.0
+
+# gevent 协程（配合 gunicorn -k gevent）
+gevent==24.11.1
+greenlet==3.1.1
