@@ -1,6 +1,6 @@
-# ERP 系统搭建与接口自动化测试
+# ERP 系统搭建与自动化测试
 
-本仓库包含两个部分：一个用于软件测试的 ERP 系统（OpenERP 企业资源管理系统），以及一套针对该系统接口的 pytest 自动化测试工程。
+本仓库包含三部分内容：一个用于软件测试的 ERP 系统（OpenERP 企业资源管理系统）、一套针对该系统接口的 pytest 自动化测试工程，以及基于 JMeter 的接口测试脚本。
 
 ## 仓库结构
 
@@ -8,6 +8,7 @@
 ERP/
 ├── ERP系统搭建/     # OpenERP 企业资源管理系统（FastAPI + SQLAlchemy + 原生前端）
 ├── 自动化测试/      # pytest + requests + Allure 接口自动化测试工程
+├── ERP+jmeter/      # JMeter 接口测试脚本（登录、基础数据）
 └── README.md        # 本文件
 ```
 
@@ -133,3 +134,25 @@ allure open allure-report
 - `conftest.py`：Token 管理、API 实例与依赖数据 fixture。
 
 更详细的说明见 `自动化测试/README.md`。
+
+---
+
+## ERP+jmeter
+
+基于 Apache JMeter 5.6.3 的接口测试工程，覆盖 ERP 系统的登录与基础数据模块。
+
+### 目录说明
+
+```text
+ERP+jmeter/
+├── 登录模块/
+│   ├── 登录测试.jmx        # 登录接口测试计划（含成功/失败用例）
+│   └── data/               # 登录测试数据（不同账号/密码组合）
+└── 基础数据/
+    ├── 基础数据.jmx        # 基础数据接口测试计划（商品创建等）
+    └── data/               # 商品创建、客户创建等测试数据
+```
+
+### 使用方法
+
+安装 Apache JMeter 后，直接打开对应 `.jmx` 文件运行即可；测试前需先启动被测 ERP 服务（默认 `http://127.0.0.1:8000`）。

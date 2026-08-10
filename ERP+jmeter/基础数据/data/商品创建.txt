@@ -1,0 +1,6 @@
+case_name,http_expected,biz_code_expected,code,name,spec,unit,barcode,category_id,purchase_price,sale_price,safety_stock,status,description
+正向完整创建商品,200,0,P_12345678_42,测试商品,500ml/瓶,件,6901234567890,7,20.5,39.9,10,active,自动化测试创建
+异常1-缺少必填code,422,,,"测试商品",,,,,"",,,,""
+异常2-缺少必填name,422,,P_12345678_42,,,,,,,,"",,""
+异常3-code超过20字符,422,,P_20260805203155_5198123456,测试商品,,,,,,,,"",,""
+异常4-重复code编码,200,1,P_12345678_42,另一个商品,,,,,,,,"",,""

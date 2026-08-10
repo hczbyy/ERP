@@ -1,0 +1,5 @@
+username,password,message,display_name
+admin,admin123,登录成功,系统管理员
+purchaser,123456,登录成功,王采购
+sales,123456,登录成功,李销售
+keeper,123456,登录成功,张仓管
