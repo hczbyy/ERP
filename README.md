@@ -1,43 +1,93 @@
 # ERP 系统搭建与自动化测试
 
-本仓库包含三部分内容：一个用于软件测试的 ERP 系统（OpenERP 企业资源管理系统）、一套针对该系统接口的 pytest 自动化测试工程，以及基于 JMeter 的接口测试脚本。
+本仓库包含 ERP 系统的两个实现版本（FastAPI 版、Spring Boot 版），以及配套的接口自动化测试工程、JMeter 接口测试脚本和一个 AI 接口测试平台。
 
 ## 仓库结构
 
 ```text
-ERP/
-├── ERP系统搭建/     # OpenERP 企业资源管理系统（FastAPI + SQLAlchemy + 原生前端）
-├── 自动化测试/      # pytest + requests + Allure 接口自动化测试工程
-├── ERP+jmeter/      # JMeter 接口测试脚本（登录、基础数据）
-└── README.md        # 本文件
+ERP-test/
+├── fastapi版ERP/      # OpenERP 企业资源管理系统（FastAPI + SQLAlchemy + 原生前端）
+├── springboot版ERP/   # OpenERP 企业资源管理系统（Spring Boot 3 + JDK 21 + MySQL + Redis）
+├── ERP+jmeter/        # JMeter 接口测试脚本（登录、基础数据）
+├── 自动化测试/         # pytest + requests + Allure 接口自动化测试工程
+├── ai测试平台/         # AI 接口测试平台（导入文档 → AI 生成用例 → 执行 → HTML 报告）
+└── README.md          # 本文件
 ```
 
 ---
 
-## ERP系统搭建
+## fastapi版ERP
 
 用于软件测试的 ERP 系统，包含采购、销售、库存、财务、系统管理等一体化功能模块，前端为原生页面，后端提供完整 REST API。
 
-## 技术栈
+- 技术栈：Python 3.10+ / FastAPI / SQLAlchemy / SQLite / PyJWT / Pydantic
+- 启动：
 
-- 后端：Python 3.10+ / FastAPI / SQLAlchemy / SQLite / PyJWT / Pydantic
-- 前端：原生 HTML / CSS / JavaScript
-- 测试：pytest
+```bash
+cd fastapi版ERP/backend
+pip install -r requirements.txt
+python run.py
+```
 
-## 功能模块
+Windows 下也可直接双击 `backend/start.bat`。启动后访问 <http://127.0.0.1:8000>，首次启动自动写入演示数据，在线接口文档见 `/docs`。
 
-| 模块 | 说明 |
-| --- | --- |
-| 登录认证 | JWT 登录、修改密码、角色权限控制 |
-| 仪表盘 | 经营数据总览 |
-| 基础资料 | 商品、客户、供应商、仓库管理 |
-| 采购管理 | 采购单、审核、收货 |
-| 销售管理 | 销售单、审核、发货 |
-| 库存管理 | 库存查询、盘点、调拨 |
-| 财务管理 | 财务查询、收付款核销 |
-| 系统管理 | 用户、角色、组织架构、审计日志 |
+更详细的说明见 `fastapi版ERP/README.md`。
 
-## 演示账号
+---
+
+## springboot版ERP
+
+使用 **Spring Boot 3.3.5 + JDK 21 + MySQL 8 + Redis** 完整重写的 ERP，功能与 FastAPI 版一致，REST 接口兼容。
+
+- 技术栈：Java 21 / Spring Boot 3.3.5 / Spring Data JPA / MySQL / Redis / JWT
+- 环境依赖：MySQL 8（数据库 `openerp`，应用账号 `erp/123456`）、Redis（127.0.0.1:6379）
+- 启动方式：
+  - IDEA：用 JDK 21 打开项目，运行主类 `com.openerp.OpenErpApplication`；
+  - 命令行：双击 `start.bat`（会自动拉起 Redis），或 `mvn spring-boot:run`。
+- 访问 <http://127.0.0.1:8080>，首次启动自动建表并写入演示数据（幂等）。
+
+更详细的说明见 `springboot版ERP/README.md`。
+
+---
+
+## 自动化测试
+
+基于接口文档生成的 PO 模式接口自动化测试工程（Python + pytest + requests + Allure），覆盖认证、仪表盘、基础数据、采购、销售、库存、财务、系统管理全部模块的正向、边界与异常用例。
+
+```bash
+cd 自动化测试
+pip install -r requirements.txt
+pytest
+```
+
+启动被测 ERP 服务（FastAPI 版默认 `http://127.0.0.1:8000`）后即可执行。更详细的说明见 `自动化测试/README.md`。
+
+---
+
+## ERP+jmeter
+
+基于 Apache JMeter 5.6.3 的接口测试工程，覆盖 ERP 系统的登录与基础数据模块，打开对应 `.jmx` 文件即可运行（测试前需先启动被测 ERP 服务）。
+
+---
+
+## ai测试平台
+
+本地接口测试平台：**导入接口文档 → AI 生成测试用例 → 人工编辑维护 → 执行用例 → 自动生成 HTML 测试报告**，全程无需编写代码。
+
+- 支持 OpenAPI 3.x / Swagger 2.0 / Postman Collection v2.1 / Markdown 接口文档导入；
+- AI 生成用例可接入任意 OpenAI 兼容大模型（DeepSeek / 通义千问 / OpenAI / 本地 Ollama 等），未配置 API Key 时使用内置规则模式离线生成；
+- 数据保存在本机 SQLite，报告保存在 `reports` 目录，无需联网、数据不外传。
+
+```bash
+cd ai测试平台
+python start.py
+```
+
+Windows 下双击 `启动平台.bat` 即可，浏览器访问 <http://127.0.0.1:8000>。更详细的说明见 `ai测试平台/README.md`。
+
+---
+
+## 演示账号（两个 ERP 版本通用）
 
 | 账号 | 密码 | 角色 |
 | --- | --- | --- |
@@ -47,112 +97,3 @@ ERP/
 | keeper | demo123 | 仓管员 |
 | finance | demo123 | 财务专员 |
 | auditor | demo123 | 审计员 |
-
-## 快速启动
-
-```bash
-cd backend
-pip install -r requirements.txt
-python run.py
-```
-
-也可以直接运行 `python app/main.py`，或使用 `uvicorn app.main:app`；Windows 下双击 `backend/start.bat` 可一键启动。启动后浏览器访问 <http://127.0.0.1:8000>。
-
-首次启动会自动写入演示数据（SQLite 数据库 `backend/data/erp.db`）。
-
-## 运行测试
-
-```bash
-cd backend
-pytest
-```
-
-## 目录结构
-
-```text
-ERP系统搭建/
-├── backend/                 # FastAPI 后端
-│   ├── app/
-│   │   ├── api/             # 接口路由（auth、purchase、sales、inventory、finance 等）
-│   │   ├── models/          # 数据模型
-│   │   ├── services/        # 业务逻辑
-│   │   ├── utils/           # 通用工具（分页、安全）
-│   │   ├── database.py      # 数据库连接
-│   │   ├── seed.py          # 演示数据初始化
-│   │   └── main.py          # 应用入口
-│   ├── data/                # SQLite 数据库文件
-│   ├── tests/               # 自动化测试
-│   ├── requirements.txt
-│   ├── run.py
-│   └── start.bat
-├── frontend/                # 前端页面（HTML / CSS / JS）
-├── docs/                    # 接口文档（api.md、openapi.json）
-└── browser_verification/    # Selenium + Edge 浏览器全量验证脚本
-```
-
-## 接口文档
-
-启动服务后，可访问 FastAPI 自带的 `/docs` 查看在线接口文档；`docs/api.md` 和 `docs/openapi.json` 中也有完整的接口说明。
-
----
-
-## 自动化测试
-
-基于接口文档 `自动化测试/api.md` 生成的 PO 模式接口自动化测试工程（Python + pytest + requests + Allure），覆盖认证、仪表盘、基础数据、采购、销售、库存、财务、系统管理全部模块的正向、边界与异常用例。
-
-### 快速开始
-
-```bash
-cd 自动化测试
-pip install -r requirements.txt
-pytest
-```
-
-启动被测服务（默认 `http://127.0.0.1:8000`）后可执行全部用例；测试结果通过 Allure 生成报告：
-
-```bash
-allure generate allure-results -o allure-report --clean
-allure open allure-report
-```
-
-### 配置
-
-通过环境变量切换环境与账号（默认即为文档约定值）：
-
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `ERP_BASE_URL` | `http://127.0.0.1:8000` | 被测服务地址 |
-| `ERP_USERNAME` | `admin` | 登录账号 |
-| `ERP_PASSWORD` | `admin123` | 登录密码 |
-| `ERP_TIMEOUT` | `15` | 请求超时（秒） |
-
-### 分层设计
-
-- `api/`：API 层（PO 对象），一个模块一个接口类；
-- `common/`：公共层（配置、请求客户端、断言、数据工厂、日志）；
-- `testcases/`：测试用例层（正向、边界、异常 + Allure 注解）；
-- `conftest.py`：Token 管理、API 实例与依赖数据 fixture。
-
-更详细的说明见 `自动化测试/README.md`。
-
----
-
-## ERP+jmeter
-
-基于 Apache JMeter 5.6.3 的接口测试工程，覆盖 ERP 系统的登录与基础数据模块。
-
-### 目录说明
-
-```text
-ERP+jmeter/
-├── 登录模块/
-│   ├── 登录测试.jmx        # 登录接口测试计划（含成功/失败用例）
-│   └── data/               # 登录测试数据（不同账号/密码组合）
-└── 基础数据/
-    ├── 基础数据.jmx        # 基础数据接口测试计划（商品创建等）
-    └── data/               # 商品创建、客户创建等测试数据
-```
-
-### 使用方法
-
-安装 Apache JMeter 后，直接打开对应 `.jmx` 文件运行即可；测试前需先启动被测 ERP 服务（默认 `http://127.0.0.1:8000`）。
