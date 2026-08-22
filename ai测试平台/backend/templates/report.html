@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>测试报告 - {{ summary.name }}</title>
+<style>
+  :root { --primary:#2563eb; --ok:#16a34a; --fail:#dc2626; --warn:#d97706; --bg:#f3f5f9; --card:#fff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Microsoft YaHei", "PingFang SC", Arial, sans-serif; }
+  .wrap { max-width:1180px; margin:0 auto; padding:24px; }
+  header { background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff; border-radius:14px; padding:28px 32px; margin-bottom:20px; }
+  header h1 { margin:0 0 8px; font-size:24px; }
+  .meta { color:#cbd5f5; font-size:13px; line-height:1.9; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; text-align:center; }
+  .card .num { font-size:32px; font-weight:700; }
+  .card .label { color:var(--muted); font-size:13px; margin-top:4px; }
+  .ok { color:var(--ok); } .fail { color:var(--fail); } .warn { color:var(--warn); }
+  .rate-bar { background:#e5e7eb; border-radius:8px; height:14px; overflow:hidden; margin-top:8px; }
+  .rate-bar > div { background:linear-gradient(90deg,#16a34a,#22c55e); height:100%; }
+  .panel { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:20px; }
+  .panel h2 { margin:0 0 14px; font-size:17px; }
+  .module-table { width:100%; border-collapse:collapse; }
+  .module-table th,.module-table td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); font-size:13px; }
+  .module-table th { background:#f8fafc; color:var(--muted); }
+  .module-table tr:last-child td { border-bottom:none; }
+  .filter-bar { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .filter-btn { border:1px solid var(--border); background:#fff; padding:8px 18px; border-radius:99px; cursor:pointer; font-size:13px; color:var(--muted); transition:all .15s; }
+  .filter-btn:hover { border-color:#cbd5e1; }
+  .filter-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; font-weight:600; }
+  .filter-bar select { border:1px solid var(--border); border-radius:9px; padding:8px 12px; font-size:13px; background:#fff; }
+  table.detail { width:100%; border-collapse:collapse; background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  table.detail th, table.detail td { padding:12px 14px; text-align:left; border-bottom:1px solid var(--border); font-size:14px; vertical-align:top; }
+  table.detail th { background:#f8fafc; font-weight:600; white-space:nowrap; }
+  tbody.case-group { display:table-row-group; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:99px; font-size:12px; font-weight:600; }
+  .badge.passed { background:#dcfce7; color:var(--ok); }
+  .badge.failed { background:#fee2e2; color:var(--fail); }
+  .badge.error { background:#fef3c7; color:var(--warn); }
+  details { border:1px solid var(--border); border-radius:10px; background:#fff; margin-top:8px; padding:12px 16px; }
+  details summary { cursor:pointer; font-weight:600; }
+  pre { background:#0f172a; color:#e2e8f0; border-radius:8px; padding:12px; overflow:auto; font-size:12px; line-height:1.6; max-height:320px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  @media(max-width:760px){ .grid2{grid-template-columns:1fr;} }
+  .assertion { margin:4px 0; font-size:13px; }
+  .assertion .pass { color:var(--ok); } .assertion .fail { color:var(--fail); }
+  .param-table { width:100%; border-collapse:collapse; margin:6px 0 12px; }
+  .param-table th, .param-table td { padding:6px 10px; border:1px solid var(--border); font-size:12px; text-align:left; }
+  .param-table th { background:#f8fafc; color:var(--muted); }
+  .kv-detail { color:var(--muted); font-size:12px; }
+  .err { color:var(--fail); white-space:pre-wrap; }
+  footer { text-align:center; color:var(--muted); font-size:12px; margin-top:24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>{{ summary.name }}</h1>
+    <div class="meta">
+      执行环境：{{ summary.env }} ｜ 开始时间：{{ summary.started_at }} ｜ 结束时间：{{ summary.finished_at }} ｜ 总耗时：{{ summary.duration }}
+    </div>
+  </header>
+
+  <div class="cards">
+    <div class="card"><div class="num">{{ summary.total }}</div><div class="label">用例总数</div></div>
+    <div class="card"><div class="num ok">{{ summary.passed }}</div><div class="label">通过</div></div>
+    <div class="card"><div class="num fail">{{ summary.failed }}</div><div class="label">失败</div></div>
+    <div class="card"><div class="num warn">{{ summary.errors }}</div><div class="label">执行错误</div></div>
+    <div class="card">
+      <div class="num">{{ summary.success_rate }}%</div><div class="label">通过率</div>
+      <div class="rate-bar"><div style="width:{{ summary.success_rate }}%"></div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>模块统计</h2>
+    <table class="module-table">
+      <thead><tr><th>模块</th><th>用例总数</th><th>通过</th><th>失败</th><th>错误</th><th>通过率</th></tr></thead>
+      <tbody>
+        {% for m in summary.modules %}
+        <tr>
+          <td><b>{{ m.name }}</b></td>
+          <td>{{ m.total }}</td>
+          <td class="ok">{{ m.passed }}</td>
+          <td class="fail">{{ m.failed }}</td>
+          <td class="warn">{{ m.errors }}</td>
+          <td>{{ m.success_rate }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if summary.cleanup %}
+  <div class="panel">
+    <h2>数据清理（测试后自动删除创建的数据）</h2>
+    <table class="module-table">
+      <thead><tr><th>来源用例</th><th>方法</th><th>地址</th><th>状态码</th><th>结果</th></tr></thead>
+      <tbody>
+        {% for c in summary.cleanup %}
+        <tr>
+          <td>{{ c.case_name }}</td>
+          <td>{{ c.method }}</td>
+          <td style="word-break:break-all" class="mono">{{ c.url }}</td>
+          <td>{{ c.status_code if c.status_code else '-' }}</td>
+          <td>
+            {% if c.ok %}<span class="badge passed">已清理/不存在</span>
+            {% else %}<span class="badge failed">清理失败</span>{% endif %}
+            {% if c.error %}<div class="kv-detail">{{ c.error }}</div>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">全部</button>
+    <button class="filter-btn" data-filter="passed">仅通过</button>
+    <button class="filter-btn" data-filter="failed">仅失败</button>
+    <button class="filter-btn" data-filter="error">仅错误</button>
+    <select id="moduleFilter">
+      <option value="">全部模块</option>
+      {% for m in summary.modules %}<option value="{{ m.name }}">{{ m.name }}</option>{% endfor %}
+    </select>
+    <span id="filterCount" style="color:var(--muted);font-size:13px"></span>
+  </div>
+
+  <table class="detail">
+    <thead>
+      <tr><th>#</th><th>用例名称</th><th>模块</th><th>方法</th><th>地址</th><th>结果</th><th>耗时</th></tr>
+    </thead>
+    {% for item in items %}
+    <tbody class="case-group" data-status="{{ item.status }}" data-module="{{ item.module or '未分类' }}">
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ item.case_name }}</td>
+        <td>{{ item.module or '未分类' }}</td>
+        <td>{{ item.request.method if item.request else '' }}</td>
+        <td style="word-break:break-all">{{ item.request.url if item.request else '' }}</td>
+        <td>
+          {% if item.status == 'passed' %}<span class="badge passed">通过</span>
+          {% elif item.status == 'failed' %}<span class="badge failed">失败</span>
+          {% else %}<span class="badge error">错误</span>{% endif %}
+        </td>
+        <td>{{ item.duration_text }}</td>
+      </tr>
+      <tr><td colspan="7" style="padding:4px 14px 14px">
+        <details>
+          <summary>查看请求 / 响应 / 断言明细</summary>
+          {% if item.error_message %}<div class="err">{{ item.error_message }}</div>{% endif %}
+          {% if item.setup_case_name %}
+          <div class="assertion"><b>前置条件：</b>{{ item.setup_case_name }}</div>
+          {% endif %}
+          {% if item.extracts %}
+          <div class="assertion"><b>提取变量：</b>
+            {% for k, v in item.extracts.items() %}{{ k }} = {{ v }} {% endfor %}
+          </div>
+          {% endif %}
+          <h4>参数清单（需要传入的参数）</h4>
+          <table class="param-table">
+            <thead><tr><th style="width:80px">分类</th><th>名称</th><th>值</th></tr></thead>
+            <tbody>
+              {% for cat, key, value in item.param_rows %}
+              <tr><td>{{ cat }}</td><td class="mono">{{ key }}</td><td class="mono" style="word-break:break-all">{{ value }}</td></tr>
+              {% else %}
+              <tr><td colspan="3">无参数</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="grid2">
+            <div><h4>请求</h4><pre>{{ item.request | tojson(indent=2) if item.request else '{}' }}</pre></div>
+            <div><h4>响应</h4><pre>{{ item.response | tojson(indent=2) if item.response else '{}' }}</pre></div>
+          </div>
+          <h4>断言结果</h4>
+          {% for a in item.assertions %}
+          <div class="assertion">
+            <span class="{{ 'pass' if a.passed else 'fail' }}">{{ '✓' if a.passed else '✗' }}</span>
+            [{{ a.type }}] {{ a.path or '-' }} {{ a.operator }} {{ a.expected }} → 实际: {{ a.actual }}
+          </div>
+          {% else %}
+          <div class="assertion">无断言</div>
+          {% endfor %}
+        </details>
+      </td></tr>
+    </tbody>
+    {% endfor %}
+  </table>
+  <footer>由 AI 接口测试平台生成 · {{ generated_at }}</footer>
+</div>
+<script>
+  (function () {
+    var groups = Array.prototype.slice.call(document.querySelectorAll('.case-group'));
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.filter-btn'));
+    var moduleSel = document.getElementById('moduleFilter');
+    var countEl = document.getElementById('filterCount');
+    var current = 'all';
+
+    function apply() {
+      var m = moduleSel.value;
+      var shown = 0;
+      groups.forEach(function (g) {
+        var okStatus = current === 'all' || g.getAttribute('data-status') === current;
+        var okModule = !m || g.getAttribute('data-module') === m;
+        var show = okStatus && okModule;
+        g.style.display = show ? '' : 'none';
+        if (show) shown++;
+      });
+      countEl.textContent = '当前显示 ' + shown + ' / ' + groups.length + ' 条';
+    }
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        buttons.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        current = btn.getAttribute('data-filter');
+        apply();
+      });
+    });
+    moduleSel.addEventListener('change', apply);
+    apply();
+  })();
+</script>
+</body>
+</html>

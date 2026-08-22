@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 接口测试平台</title>
+<link rel="stylesheet" href="/static/css/style.css?v=4">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">AI</div>
+      <div>
+        <div class="brand-name">接口测试平台</div>
+        <div class="brand-sub">智能 · 可落地</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-tab="dashboard"><span class="nav-ico">◧</span>工作台</button>
+      <button class="nav-item" data-tab="operations"><span class="nav-ico">⇄</span>接口管理</button>
+      <button class="nav-item" data-tab="cases"><span class="nav-ico">☑</span>用例管理</button>
+      <button class="nav-item" data-tab="flows"><span class="nav-ico">▤</span>业务流程</button>
+      <button class="nav-item" data-tab="runs"><span class="nav-ico">▶</span>执行与报告</button>
+      <button class="nav-item" data-tab="settings"><span class="nav-ico">⚙</span>系统设置</button>
+    </nav>
+    <div class="sidebar-foot">本地私有部署 · 数据保存在本机</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="pageTitle">工作台</h1>
+        <p id="pageDesc" class="page-desc">平台概览与最近执行情况</p>
+      </div>
+      <div class="top-actions" id="topActions"></div>
+    </header>
+    <section id="content" class="content"></section>
+  </main>
+</div>
+
+<div id="toastWrap" class="toast-wrap"></div>
+
+<div class="modal-mask" id="importModal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3>导入接口文档</h3>
+      <button class="icon-btn" data-close="importModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="seg" id="importSeg">
+        <button class="seg-item active" data-import-mode="file">上传文件</button>
+        <button class="seg-item" data-import-mode="paste">粘贴文档</button>
+      </div>
+      <div id="importFilePanel">
+        <label class="dropzone" id="dropzone">
+          <input type="file" id="importFileInput" accept=".json,.yaml,.yml" hidden>
+          <div class="dz-title">点击选择或拖入接口文档</div>
+          <div class="dz-sub">支持 OpenAPI 3.x / Swagger 2.0（JSON、YAML）、Postman Collection v2.1、Markdown 接口文档</div>
+          <div id="fileName" class="dz-file"></div>
+        </label>
+      </div>
+      <div id="importPastePanel" hidden>
+        <textarea id="importText" class="textarea mono" rows="10" placeholder="将 Swagger / OpenAPI / Postman 的 JSON 或 YAML 内容粘贴到这里..."></textarea>
+      </div>
+      <div class="tip">提示：导入后可以在“接口管理”中选择接口，一键 AI 生成测试用例。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="importModal">取消</button>
+      <button class="btn primary" id="importSubmit" data-action="import-submit">开始导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="opModal" hidden>
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3>接口详情</h3>
+      <button class="icon-btn" data-close="opModal">×</button>
+    </div>
+    <div class="modal-body" id="opDetail"></div>
+    <div class="modal-foot">
+      <button class="btn" data-close="opModal">关闭</button>
+      <button class="btn primary" id="opGenBtn">AI 生成用例</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="aiModal" hidden>
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3>AI 生成测试用例</h3>
+      <button class="icon-btn" data-close="aiModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>生成策略</label>
+        <div class="radio-row">
+          <label><input type="radio" name="aiMode" value="all" checked> 全面覆盖（推荐）</label>
+          <label><input type="radio" name="aiMode" value="normal"> 正常路径</label>
+          <label><input type="radio" name="aiMode" value="param"> 参数校验/边界</label>
+          <label><input type="radio" name="aiMode" value="business"> 业务场景</label>
+          <label><input type="radio" name="aiMode" value="free"> 自由描述</label>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>执行环境（生成前会自动探测该环境下的接口契约）</label>
+        <select id="aiEnv" class="input"></select>
+      </div>
+      <div class="form-row" id="scopeRow">
+        <label>生成范围</label>
+        <div id="aiScopeText" class="scope-text">全部接口</div>
+      </div>
+      <div class="form-row" id="freeRow" hidden>
+        <label>需求描述</label>
+        <textarea id="aiFreeText" class="textarea" rows="4" placeholder="例如：为登录接口生成测试用例，覆盖正确密码、错误密码、账号不存在、参数缺失等场景..."></textarea>
+      </div>
+      <div class="form-row">
+        <label>额外要求（可选）</label>
+        <textarea id="aiExtra" class="textarea" rows="3" placeholder="例如：所有用例必须包含 token 失效场景；创建类接口断言返回 id 不为空..."></textarea>
+      </div>
+      <div class="tip" id="aiTip">未配置 AI 模型时，平台将使用“规则模式”基于接口 Schema 自动生成等价类/边界值用例。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="aiModal">取消</button>
+      <button class="btn primary" id="aiSubmit" data-action="ai-submit">开始生成</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="caseModal" hidden>
+  <div class="modal xl">
+    <div class="modal-head">
+      <h3 id="caseModalTitle">新增用例</h3>
+      <button class="icon-btn" data-close="caseModal">×</button>
+    </div>
+    <div class="modal-body case-editor">
+      <div class="form-row half">
+        <div><label>用例名称 *</label><input id="cName" class="input" placeholder="例如：用户登录-正确密码"></div>
+        <div><label>模块</label><input id="cModule" class="input" placeholder="默认"></div>
+      </div>
+      <div class="form-row half">
+        <div><label>优先级</label>
+          <select id="cPriority" class="input">
+            <option>P0</option><option selected>P1</option><option>P2</option><option>P3</option>
+          </select>
+        </div>
+        <div><label>执行环境</label>
+          <select id="cEnv" class="input"></select>
+        </div>
+      </div>
+      <div class="form-row half">
+        <div><label>请求方式</label>
+          <select id="cMethod" class="input">
+            <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option>
+            <option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
+          </select>
+        </div>
+        <div><label>请求地址（相对路径自动拼接环境地址，可用 {{base_url}} / {{变量}}）</label>
+          <input id="cUrl" class="input mono" placeholder="{{base_url}}/api/v1/login">
+        </div>
+      </div>
+      <div class="form-row"><label>用例描述</label><textarea id="cDesc" class="textarea" rows="2"></textarea></div>
+
+      <h4 class="sec-title">请求头 Headers</h4>
+      <div class="kv-wrap" id="cHeaders"></div>
+      <button class="btn ghost small" data-add-kv="cHeaders">＋ 添加请求头</button>
+
+      <h4 class="sec-title">查询参数 Query</h4>
+      <div class="kv-wrap" id="cQuery"></div>
+      <button class="btn ghost small" data-add-kv="cQuery">＋ 添加查询参数</button>
+
+      <h4 class="sec-title">路径参数 Path Params（自动替换 {id} 或 :id）</h4>
+      <div class="kv-wrap" id="cPathParams"></div>
+      <button class="btn ghost small" data-add-kv="cPathParams">＋ 添加路径参数</button>
+
+      <div class="form-row">
+        <div>
+          <label>请求体类型</label>
+          <select id="cBodyType" class="input">
+            <option value="json">JSON</option>
+            <option value="form">表单 form</option>
+            <option value="raw">原始文本 raw</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label>请求体 Body（JSON 直接编辑）</label>
+          <textarea id="cBody" class="textarea mono" rows="6" placeholder='{"username":"test","password":"123456"}'></textarea>
+        </div>
+      </div>
+
+      <h4 class="sec-title">断言 Assertions</h4>
+      <div id="cAssertions"></div>
+      <button class="btn ghost small" data-add-assertion>＋ 添加断言</button>
+      <div class="tip">字段级断言示例：type=json, path=data.id, operator=exists；type=text, operator=contains, expected=success</div>
+
+      <h4 class="sec-title">接口依赖 / 变量提取</h4>
+      <div class="form-row">
+        <label>前置用例（先执行它，提取的变量自动传递到本用例）</label>
+        <select id="cSetupCase" class="input"><option value="">无</option></select>
+      </div>
+      <div class="kv-wrap" id="cExtracts"></div>
+      <button class="btn ghost small" data-add-extract>＋ 添加变量提取（变量名 + JSON 路径）</button>
+      <div class="tip">示例：登录用例提取 token（JSON 路径 data.token），本用例请求头写 Authorization: Bearer {{token}}；创建订单提取 order_id（data.id），修改/删除用例的路径参数写 {{order_id}}，即可形成完整业务流。</div>
+
+      <h4 class="sec-title">测试后清理（自动删除测试创建的数据）</h4>
+      <div class="kv-wrap" id="cCleanup"></div>
+      <button class="btn ghost small" data-add-cleanup>＋ 添加清理动作（方法 + 地址）</button>
+      <div class="tip">可选规则：默认不执行。若在“系统设置”开启“测试结束后自动清理测试数据”，整轮执行结束后平台会按这里的规则用提取的变量自动删除测试数据。</div>
+
+      <div class="form-row">
+        <label class="check-line"><input type="checkbox" id="cEnabled" checked> 启用该用例（执行时默认只运行启用中的用例）</label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="caseModal">取消</button>
+      <button class="btn primary" id="caseSave" data-action="case-save">保存用例</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="runModal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3>新建测试执行</h3>
+      <button class="icon-btn" data-close="runModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>执行名称</label>
+        <input id="runName" class="input" placeholder="留空自动命名">
+      </div>
+      <div class="form-row">
+        <label>执行环境</label>
+        <select id="runEnv" class="input"></select>
+      </div>
+      <div class="form-row">
+        <label>执行范围</label>
+        <div class="radio-row">
+          <label><input type="radio" name="runScope" value="all" checked> 全部启用用例</label>
+          <label><input type="radio" name="runScope" value="selected"> 已选用例（<span id="runSelectedCount">0</span> 条）</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="runModal">取消</button>
+      <button class="btn primary" id="runSubmit" data-action="run-submit">开始执行</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="runDetailModal" hidden>
+  <div class="modal xl">
+    <div class="modal-head">
+      <h3>执行明细</h3>
+      <button class="icon-btn" data-close="runDetailModal">×</button>
+    </div>
+    <div class="modal-body" id="runDetail"></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="flowModal" hidden>
+  <div class="modal xl">
+    <div class="modal-head">
+      <h3 id="flowModalTitle">新建业务流程</h3>
+      <button class="icon-btn" data-close="flowModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row half">
+        <div><label>流程名称 *</label><input id="flowName" class="input" placeholder="例如：采购收货全流程"></div>
+        <div><label>执行环境</label><select id="flowEnv" class="input"></select></div>
+      </div>
+      <div class="form-row"><label>流程说明</label><textarea id="flowDesc" class="textarea" rows="2"></textarea></div>
+      <div class="form-row">
+        <label>执行步骤（按顺序执行，支持前置依赖与变量传递）</label>
+        <button class="btn ghost small" data-action="flow-add-case">＋ 添加用例</button>
+        <button class="btn ghost small" data-action="flow-new-case">＋ 新建流程用例（仅本流程）</button>
+      </div>
+      <div class="kv-wrap" id="flowSteps"></div>
+      <div class="tip">提示：登录用例放在最前并配置变量提取（如 token），后续用例引用 {{token}}；创建类用例提取 ID 后，修改/删除用例可用 {{order_id}} 等变量。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="flowModal">取消</button>
+      <button class="btn primary" data-action="flow-save">保存流程</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="casePickerModal" hidden>
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3>选择用例加入流程</h3>
+      <button class="icon-btn" data-close="casePickerModal">×</button>
+    </div>
+    <div class="modal-body">
+      <input id="pickerSearch" class="input" placeholder="搜索用例名称 / 地址...">
+      <div id="pickerList" style="max-height:420px;overflow:auto;margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="confirmModal" hidden>
+  <div class="modal small">
+    <div class="modal-head"><h3>确认操作</h3></div>
+    <div class="modal-body" id="confirmText"></div>
+    <div class="modal-foot">
+      <button class="btn" data-close="confirmModal">取消</button>
+      <button class="btn danger" id="confirmOk">确认</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/app.js?v=16"></script>
+</body>
+</html>

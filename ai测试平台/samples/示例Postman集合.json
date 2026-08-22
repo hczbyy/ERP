@@ -1,0 +1,86 @@
+{
+  "info": {
+    "name": "示例商城接口（Postman 导入演示）",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "用户模块",
+      "item": [
+        {
+          "name": "用户登录",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"username\":\"tester01\",\"password\":\"123456\"}" },
+            "url": {
+              "raw": "http://127.0.0.1:8080/api/v1/users/login",
+              "host": ["127.0.0.1"],
+              "port": "8080",
+              "path": ["api", "v1", "users", "login"]
+            }
+          },
+          "response": [
+            {
+              "name": "登录成功",
+              "code": 200,
+              "body": "{\"code\":0,\"message\":\"success\",\"data\":{\"token\":\"demo-token-123\",\"userId\":1}}"
+            }
+          ]
+        },
+        {
+          "name": "查询用户列表",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8080/api/v1/users?page=1&size=10",
+              "host": ["127.0.0.1"],
+              "port": "8080",
+              "path": ["api", "v1", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "查询成功",
+              "code": 200,
+              "body": "{\"code\":0,\"data\":{\"list\":[{\"id\":1,\"name\":\"张三\"}],\"total\":1}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "订单模块",
+      "item": [
+        {
+          "name": "创建订单",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"goodsId\":1,\"quantity\":2,\"remark\":\"尽快发货\"}" },
+            "url": {
+              "raw": "http://127.0.0.1:8080/api/v1/orders",
+              "host": ["127.0.0.1"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": [
+            {
+              "name": "创建成功",
+              "code": 200,
+              "body": "{\"code\":0,\"message\":\"success\",\"data\":{\"id\":1001,\"orderNo\":\"SO20260811001\",\"status\":\"PENDING\",\"amount\":99.9}}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
