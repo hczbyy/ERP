@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="OpenErpApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="openerp" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.openerp.OpenErpApplication" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="D:/jdk21" />
+    <option name="SHORTEN_COMMAND_LINE" value="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

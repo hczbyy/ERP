@@ -1,0 +1,52 @@
+server:
+  port: 8080
+  tomcat:
+    accesslog:
+      enabled: true
+      directory: D:/springboot依赖/logs
+      prefix: access
+      suffix: .log
+      pattern: common
+
+spring:
+  application:
+    name: openerp
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/openerp?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: erp
+    password: "123456"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: true
+    properties:
+      hibernate:
+        format_sql: false
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      timeout: 3000ms
+      repositories:
+        enabled: false
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    property-naming-strategy: SNAKE_CASE
+
+openerp:
+  jwt:
+    secret: openerp-dev-secret-change-me-in-production
+    expire-minutes: 480
+    issuer: openerp
+
+logging:
+  level:
+    root: info
+    com.openerp: info
